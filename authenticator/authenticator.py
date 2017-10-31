@@ -71,7 +71,6 @@ def update_credentials(file, profile, credentials):
 def store_secret(profile, secret):
 	set_password("aws-" + profile, profile, secret)
 
-def create_base_profile(profile):
 
 def main():
 	
@@ -81,10 +80,10 @@ def main():
 	
 	tempCredentials = get_credentials(profile,secret)
 	
-	print(tempCredentials)
-
 	cred = tempCredentials["Credentials"]
 	update_credentials(credentials_file, profile, cred)
+	print("Sucess!")
+	print(" On your terminal type:\n export AWS_PROFILE=" + profile + "-mfa\n to load your credentials")
 
 
 if __name__ == "__main__":
@@ -92,10 +91,11 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument('profile', type=str, help='name of your base profile')
 	parser.add_argument('-s', '--secret', help='save secret in keychain')
-	parser.add_argument('-g', '--generate-profile', nargs=2, metavar=('ACCESS_KEY', 'SECRET_KEY'),  help='create base profile with your access key and secret key')
+#	parser.add_argument('-g', '--generate-profile', nargs=2, metavar=('ACCESS_KEY', 'SECRET_KEY'),  help='create base profile with your access key and secret key')
 	args = parser.parse_args()
 	if args.secret:
 		store_secret("%s" % args.profile, "%s" % args.secret)
 		print("Your secret is successfully registered in your keychain")
 	if args.profile and not args.secret:
 		main()
+	
