@@ -1,0 +1,6 @@
+# Install dependencies
+
+argparse
+keyring
+boto3
+configparser
