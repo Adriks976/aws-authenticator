@@ -3,8 +3,9 @@
 import hmac, base64, struct, hashlib, time, re, sys
 import os
 import boto3
-from keyring import get_password
+from keyring import get_password, set_password
 from configparser import ConfigParser
+import argparse
 
 def get_token(secret):
 	secret = re.sub(r'\s+', '', secret, flags=re.UNICODE)
@@ -67,7 +68,10 @@ def update_credentials(file, profile, credentials):
 		config.write(configfile)
 
 
+def store_secret(profile, secret):
+	set_password("aws-" + profile, profile, secret)
 
+def create_base_profile(profile):
 
 def main():
 	
@@ -84,4 +88,14 @@ def main():
 
 
 if __name__ == "__main__":
-	main()
+	parser = argparse.ArgumentParser(description='Manage AWS profile with MFA enabled')
+	parser = argparse.ArgumentParser()
+	parser.add_argument('profile', type=str, help='name of your base profile')
+	parser.add_argument('-s', '--secret', help='save secret in keychain')
+	parser.add_argument('-g', '--generate-profile', nargs=2, metavar=('ACCESS_KEY', 'SECRET_KEY'),  help='create base profile with your access key and secret key')
+	args = parser.parse_args()
+	if args.secret:
+		store_secret("%s" % args.profile, "%s" % args.secret)
+		print("Your secret is successfully registered in your keychain")
+	if args.profile and not args.secret:
+		main()
