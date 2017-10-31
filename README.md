@@ -4,6 +4,9 @@ manage credentials file, generate MFA tokens
 A Python script wich help you managing your AWS credentials with your MFA tokens.
 To use MFA on AWS you can use a virtual device like Google authenticator or you can just use this script.
 
+To install dependencies:
+
+pip3 install -r requirements.txt
 
 Configuration required
 
