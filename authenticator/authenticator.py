@@ -6,6 +6,7 @@ import boto3
 from keyring import get_password, set_password
 from configparser import ConfigParser
 import argparse
+import getpass
 
 def get_token(secret):
 	secret = re.sub(r'\s+', '', secret, flags=re.UNICODE)
@@ -18,8 +19,8 @@ def get_token(secret):
 	h = (struct.unpack(">I", h[o:o+4])[0] & 0x7fffffff) % 1000000
 	return '{0:06d}'.format(h)
 
-def get_secret(file,profile):
-	secret = get_password("aws-" + profile, profile)
+def get_secret(file, base_profile):
+	secret = get_password("aws-" + base_profile, base_profile)
 	if secret: 
 		return secret
 	else: 
@@ -58,12 +59,14 @@ def get_credentials(profile,secret):
 			    TokenCode=mfa_TOTP)
 
 
-def update_credentials(file, profile, credentials):
+def update_credentials(file, mfa_profile, credentials):
 	config = ConfigParser()
 	config.read(file)
-	config[profile + '-mfa']['aws_access_key_id'] = credentials["AccessKeyId"]
-	config[profile + '-mfa']['aws_secret_access_key'] = credentials["SecretAccessKey"]
-	config[profile + '-mfa']['aws_session_token'] = credentials["SessionToken"]
+	if not config.has_section(mfa_profile):
+		config.add_section(mfa_profile)
+	config[mfa_profile]['aws_access_key_id'] = credentials["AccessKeyId"]
+	config[mfa_profile]['aws_secret_access_key'] = credentials["SecretAccessKey"]
+	config[mfa_profile]['aws_session_token'] = credentials["SessionToken"]
 	with open(file, 'w') as configfile:
 		config.write(configfile)
 
@@ -81,7 +84,8 @@ def main():
 	tempCredentials = get_credentials(profile,secret)
 	
 	cred = tempCredentials["Credentials"]
-	update_credentials(credentials_file, profile, cred)
+	
+	update_credentials(credentials_file, sys.argv[2], cred)
 	print("Sucess!")
 	print(" On your terminal type:\n export AWS_PROFILE=" + profile + "-mfa\n to load your credentials")
 
@@ -89,13 +93,15 @@ def main():
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Manage AWS profile with MFA enabled')
 	parser = argparse.ArgumentParser()
-	parser.add_argument('profile', type=str, help='name of your base profile')
-	parser.add_argument('-s', '--secret', help='save secret in keychain')
+	parser.add_argument('base_profile', type=str, help='name of your base profile')
+	parser.add_argument('mfa_profile', type=str, help='name of your new mfa profile')
+	parser.add_argument('-s', '--store-secret', help='save secret in keychain', action='store_true')
 #	parser.add_argument('-g', '--generate-profile', nargs=2, metavar=('ACCESS_KEY', 'SECRET_KEY'),  help='create base profile with your access key and secret key')
 	args = parser.parse_args()
-	if args.secret:
-		store_secret("%s" % args.profile, "%s" % args.secret)
+	if args.store_secret:
+		secret=getpass.getpass("Enter Your Secret Here: ")
+		store_secret("%s" % args.profile, secret)
 		print("Your secret is successfully registered in your keychain")
-	if args.profile and not args.secret:
+	if args.base_profile and not args.store_secret:
 		main()
 	
