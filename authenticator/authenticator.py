@@ -100,7 +100,7 @@ if __name__ == "__main__":
 	args = parser.parse_args()
 	if args.store_secret:
 		secret=getpass.getpass("Enter Your Secret Here: ")
-		store_secret("%s" % args.profile, secret)
+		store_secret("%s" % args.base_profile, secret)
 		print("Your secret is successfully registered in your keychain")
 	if args.base_profile and not args.store_secret:
 		main()
