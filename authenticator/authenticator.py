@@ -54,7 +54,7 @@ def get_credentials(profile,secret):
 	mfa_device = mfa_device["MFADevices"][0]["SerialNumber"]
 
 	return sts_connection.get_session_token(
-		            DurationSeconds=3600,
+		            DurationSeconds=86400,
 			    SerialNumber=mfa_device,
 			    TokenCode=mfa_TOTP)
 
