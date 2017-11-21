@@ -75,33 +75,41 @@ def store_secret(profile, secret):
 	set_password("aws-" + profile, profile, secret)
 
 
-def main():
-	
-	credentials_file = os.path.expanduser('~/.aws/credentials')
-	profile = get_profile(credentials_file, sys.argv[1]) 
-	secret = get_secret(credentials_file, profile)
-	
-	tempCredentials = get_credentials(profile,secret)
-	
-	cred = tempCredentials["Credentials"]
-	
-	update_credentials(credentials_file, sys.argv[2], cred)
-	print("Sucess!")
-	print(" On your terminal type:\n export AWS_PROFILE=" + profile + "-mfa\n to load your credentials")
-
-
 if __name__ == "__main__":
-	parser = argparse.ArgumentParser(description='Manage AWS profile with MFA enabled')
-	parser = argparse.ArgumentParser()
-	parser.add_argument('base_profile', type=str, help='name of your base profile')
-	parser.add_argument('mfa_profile', type=str, help='name of your new mfa profile')
-	parser.add_argument('-s', '--store-secret', help='save secret in keychain', action='store_true')
 #	parser.add_argument('-g', '--generate-profile', nargs=2, metavar=('ACCESS_KEY', 'SECRET_KEY'),  help='create base profile with your access key and secret key')
+	
+	parser = argparse.ArgumentParser(description='Manage AWS profiles with MFA enabled')
+	optional = parser._action_groups.pop() 
+	required = parser.add_argument_group('required argument')
+	required.add_argument('base_profile', type=str, help='name of your base profile')
+
+	optional.add_argument('-g', '--generate-profile', type=str, metavar='mfa_profile', help='name of your mfa profile you want to create')
+	optional.add_argument('-s', '--store-secret', help='save secret in keychain', action='store_true')
+
+	parser._action_groups.append(optional) 
 	args = parser.parse_args()
+	
 	if args.store_secret:
 		secret=getpass.getpass("Enter Your Secret Here: ")
 		store_secret("%s" % args.base_profile, secret)
 		print("Your secret is successfully registered in your keychain")
-	if args.base_profile and not args.store_secret:
-		main()
+	elif args.generate_profile:
+		credentials_file = os.path.expanduser('~/.aws/credentials')
+		profile = get_profile(credentials_file, "%s" % args.base_profile)
+		secret = get_secret(credentials_file, profile)
+	
+		tempCredentials = get_credentials(profile,secret)
+	
+		cred = tempCredentials["Credentials"]
+	
+		update_credentials(credentials_file, "%s" % args.generate_profile, cred)
+		print("Sucess!")
+		print(" On your terminal type:\n export AWS_PROFILE=%s\n to load your credentials" % args.generate_profile)
+		
+	else:
+		credentials_file = os.path.expanduser('~/.aws/credentials')
+		profile = get_profile(credentials_file, "%s" % args.base_profile) 
+		secret = get_secret(credentials_file, profile)
+		print("Token: "+ get_token(secret))	
+
 	
