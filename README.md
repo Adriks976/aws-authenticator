@@ -91,6 +91,12 @@ Enter Your Secret Here:🔑
 Your secret is successfully registered in your keychain
 ```
 
+Where to get the secret?
+From AWS console, when you setup a virtual MFA you get this screen:
+
+![Alt text](get_secret.jpg?raw=true "Get secret")
+
+
 ### Generate a MFA token
 
 Generates a token that can be used for login your AWS account.
